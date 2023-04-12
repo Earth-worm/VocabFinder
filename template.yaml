@@ -1,0 +1,89 @@
+Transform: AWS::Serverless-2016-10-31
+Globals:
+  Function:
+    Runtime: go1.x
+    MemorySize: 3008
+    Timeout: 5
+    Tracing: Active
+    Environment:
+      Variables:
+        VOCAB_FINDER_LINE_CHANNEL_TOKEN: !Ref VocabFinderLineChannelToken
+        VOCAB_FINDER_LINE_CHANNEL_SECRET: !Ref VocabFinderLineChannelSecret
+Resources:
+  Api:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub
+        - ${ResourceName} From Stack ${AWS::StackName}
+        - ResourceName: Api
+      StageName: dev
+      DefinitionBody:
+        openapi: '3.0'
+        info: {}
+        paths:
+          /line/:
+            post:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LineFunction.Arn}/invocations
+              responses: {}
+      EndpointConfiguration: REGIONAL
+      TracingEnabled: true
+  FunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: vocab-finder-fucntion-role
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: vocab-finder-function-role-policy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ssm:GetParameter
+                  - ssm:GetParameters
+                Resource: "*"
+  #function
+  LineFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: handler/line/
+      Handler: main
+      Role: !GetAtt FunctionRole.Arn
+      Events:
+        ApiPOSTline:
+          Type: Api
+          Properties:
+            Path: /line/
+            Method: POST
+            RestApiId: !Ref Api
+  #ssm parameter
+  VocabFinderLineChannelToken:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: VOCAB_FINDER_LINE_CHANNEL_TOKEN
+      Description: line channel secret
+      Type: String
+      Value: this-is-sample
+  VocabFinderLineChannelSecret:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: VOCAB_FINDER_LINE_CHANNEL_SECRET
+      Description: line channel secret
+      Type: String
+      Value: this-is-sample
+Outputs:
+  API:
+    Description: API Gateway URL
+    Value: !Sub https://${Api}.execute-api.${AWS::Region}.amazonaws.com/dev/
