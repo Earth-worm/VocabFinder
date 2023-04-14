@@ -19,10 +19,11 @@ func LineHandler(ctx context.Context, request events.APIGatewayProxyRequest, glo
 	log.Printf("RequestBody: %+v", request.Body)
 	var responseBody string
 	var err error
+
 	lineEvents, err := line.ParseRequest(global.LineConfig.ChannelSecret, &request)
 	if err != nil {
 		zap.L().Error(fmt.Sprintf("aws request id:%s", global.LambdaContext.AwsRequestID), zap.Error(err))
-		return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, nil
+		return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError, Body: err.Error()}, nil
 	}
 	for _, event := range lineEvents {
 		switch event.Type {
@@ -45,7 +46,7 @@ func LineHandler(ctx context.Context, request events.APIGatewayProxyRequest, glo
 		}
 		if err != nil {
 			zap.L().Error(fmt.Sprintf("aws request id:%s", global.LambdaContext.AwsRequestID), zap.Error(err))
-			return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, nil
+			return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError, Body: err.Error()}, nil
 		}
 	}
 	return events.APIGatewayProxyResponse{
