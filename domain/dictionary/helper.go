@@ -27,7 +27,7 @@ type Word struct {
 	} `json:"phonetics"`
 	Meanings []struct {
 		PartOfSpeech string `json:"partOfSpeech"`
-		definitions  []struct {
+		Definitions  []struct {
 			Definition string   `json:"definition"`
 			Synonyms   []string `json:"synonyms"`
 			Antonyms   []string `json:"antonyms"`
@@ -42,6 +42,24 @@ type ErrorResponse struct {
 	Title      string `json:"title"`
 	Message    string `json:"message"`
 	Resolution string `json:"Resplution"`
+}
+
+func ParseWords(body []byte) ([]Word, error) {
+	var words []Word
+	err := json.Unmarshal(body, &words)
+	if err != nil {
+		return nil, errors.Wrap(err, "parse data error")
+	}
+	return words, nil
+}
+
+func ParseErrorResponse(body []byte) (ErrorResponse, error) {
+	var errorResponse ErrorResponse
+	err := json.Unmarshal(body, &errorResponse)
+	if err != nil {
+		return errorResponse, errors.Wrap(err, "parse data error")
+	}
+	return errorResponse, nil
 }
 
 func FindWord(word string) ([]Word, error) {
@@ -66,22 +84,4 @@ func FindWord(word string) ([]Word, error) {
 		return nil, err
 	}
 	return words, nil
-}
-
-func ParseWords(body []byte) ([]Word, error) {
-	var words []Word
-	err := json.Unmarshal(body, &words)
-	if err != nil {
-		return nil, errors.Wrap(err, "parse data error")
-	}
-	return words, nil
-}
-
-func ParseErrorResponse(body []byte) (ErrorResponse, error) {
-	var errorResponse ErrorResponse
-	err := json.Unmarshal(body, &errorResponse)
-	if err != nil {
-		return errorResponse, errors.Wrap(err, "parse data error")
-	}
-	return errorResponse, nil
 }

@@ -27,21 +27,29 @@ type Handler func(context.Context, events.APIGatewayProxyRequest, *input.Global)
 func MiddlewareHandler(h Handler) LambdaStartHandler {
 	return func(ctx context.Context, request events.APIGatewayProxyRequest) (interface{}, error) {
 		var err error
+		logger, err := zap.NewDevelopment()
+		if err != nil {
+			panic(err)
+		}
+		zap.ReplaceGlobals(logger)
+
 		lc, ok := lambdacontext.FromContext(ctx)
+
 		if ok != true {
 			err = fmt.Errorf("middleware lambda context error")
+			logger.Error("new logger error", zap.Error(err))
 			return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError, Body: err.Error()}, nil
 		}
 		// line
 		lineChannelSecret, err := aws.GetParameter("VOCAB_FINDER_LINE_CHANNEL_SECRET")
 		if err != nil {
-			zap.L().Error(err.Error())
-			log.Print(err)
+			logger.Error("new logger error", zap.Error(err))
 			return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, nil
 		}
 		lineChannelToken, err := aws.GetParameter("VOCAB_FINDER_LINE_CHANNEL_TOKEN")
 		if err != nil {
 			zap.L().Error(err.Error())
+			log.Print(err)
 			log.Print(err)
 			return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError}, nil
 		}

@@ -45,7 +45,7 @@ func LineHandler(ctx context.Context, request events.APIGatewayProxyRequest, glo
 			*/
 		}
 		if err != nil {
-			zap.L().Error(fmt.Sprintf("aws request id:%s", global.LambdaContext.AwsRequestID), zap.Error(err))
+			zap.L().Error("error msg", zap.Error(err))
 			return events.APIGatewayProxyResponse{StatusCode: http.StatusInternalServerError, Body: err.Error()}, nil
 		}
 	}

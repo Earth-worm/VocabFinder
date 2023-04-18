@@ -42,11 +42,11 @@ func ReplyMessage(config *Config, replyToken, message string) error {
 func ReplyTemplate(config *Config, replyToken string, template linebot.Template) error {
 	bot, err := linebot.New(config.ChannelSecret, config.ChannelToken)
 	if err != nil {
-		return errors.Wrap(err, "line api reply message error")
+		return errors.Wrap(err, "line api reply template error")
 	}
 	_, err = bot.ReplyMessage(replyToken, linebot.NewTemplateMessage("template", template)).Do()
 	if err != nil {
-		return errors.Wrap(err, "line api reply message error")
+		return errors.Wrap(err, "line api reply template error")
 	}
 	return nil
 }

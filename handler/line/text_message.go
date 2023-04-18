@@ -13,6 +13,8 @@ func MessageTextHandler(ctx context.Context, global *input.Global, replyToken st
 	switch message.Text {
 	case line.TextMessageTriggerTest.String():
 		responseBody, err = usecase.Test(ctx, global, replyToken, message)
+	default:
+		responseBody, err = usecase.SendWordDetail(ctx, global, replyToken, message.Text)
 	}
 	if err != nil {
 		return "", err
